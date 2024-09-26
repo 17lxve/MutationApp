@@ -23,6 +23,7 @@ class MutationApp extends StatelessWidget {
           ),
         ),
         home: HomePage(),
+        // home: BibliothequePage(),
       ),
     );
   }
@@ -66,9 +67,9 @@ class HomePage extends StatelessWidget {
       case 0:
         currentPage = FormationsPage();
       case 1:
-        currentPage = Placeholder(); // BoutiquePage
+        currentPage = BoutiquePage(); // BoutiquePage
       case 2:
-        currentPage = Placeholder(); // BibliothequePage
+        currentPage = BibliothequePage(); // BibliothequePage
       case 3:
         currentPage = Placeholder(); // ProfilPage
       case 4:
@@ -165,6 +166,7 @@ class BottomBar extends StatelessWidget {
   }
 }
 
+// Pages
 class FormationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -187,6 +189,35 @@ class FormationsPage extends StatelessWidget {
   }
 }
 
+class BibliothequePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 30,
+        ),
+        BibleWidget()
+      ],
+    );
+  }
+}
+
+class BoutiquePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 30,
+        ),
+        LivreWidget()
+      ],
+    );
+  }
+}
+
+// Components
 class FormationHistoryInfo extends StatelessWidget {
   const FormationHistoryInfo(
     this.period, {
@@ -321,6 +352,111 @@ class FormationHero extends StatelessWidget {
   }
 }
 
+class LivreWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Theme.of(context).colorScheme.primary),
+      width: 370,
+      height: 100,
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image(
+              image: NetworkImage(
+                  "https://i.pinimg.com/564x/9b/37/04/9b3704335e8ec736966f0846c08841c6.jpg",
+                  scale: 5),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(children: [
+              Text("Titre de livre"),
+              Text("Prix du livre"),
+              ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                        Theme.of(context).colorScheme.tertiary),
+                  ),
+                  onPressed: () {
+                    print("Plus d'infos");
+                  },
+                  child: Text("Plus d'infos"))
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class BibleWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Theme.of(context).colorScheme.primary),
+      width: 370,
+      height: 100,
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image(
+              image: NetworkImage(
+                "https://i.pinimg.com/564x/9b/37/04/9b3704335e8ec736966f0846c08841c6.jpg", /*scale: 5*/
+              ),
+              width: 100,
+              height: 120,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(children: [
+              Text("Titre de livre"),
+              Text("Prix du livre"),
+              Row(
+                children: [
+                  ButtonTheme(
+                    minWidth: 100,
+                    height: 50,
+                    child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all<Color>(
+                              Theme.of(context).colorScheme.tertiary),
+                        ),
+                        onPressed: () {
+                          print("Lire");
+                        },
+                        child: Text("Lire")),
+                  ),
+                  ButtonTheme(
+                      minWidth: 100,
+                      height: 50,
+                      child: ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all<Color>(
+                                Theme.of(context).colorScheme.tertiary),
+                          ),
+                          onPressed: () {
+                            print("Plus d'infos");
+                          },
+                          child: Text("Plus d'infos"))),
+                ],
+              )
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Configuration Data
 class AppColors {
   static const primary = Color(0xFF333333);
   static const secondary = Color(0xFF555555);
