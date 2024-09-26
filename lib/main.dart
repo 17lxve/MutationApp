@@ -37,8 +37,8 @@ class MutationAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  changeIndex(new_index) {
-    index = new_index;
+  changeIndex(newIndex) {
+    index = newIndex;
     notifyListeners();
   }
 }
