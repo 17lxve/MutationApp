@@ -1,8 +1,59 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/material.dart' as material show Size;
+import 'package:http/http.dart' as http;
 
-void main() {
+void main() async {
+  fetchAlbum();
   runApp(MutationApp());
+}
+
+Future<Livre> fetchAlbum() async {
+  final response = await http
+      .get(Uri.parse('https://jsonplaceholder.typicode.com/albums/1'));
+  if (response.statusCode == 200) {
+    return Livre.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  } else {
+    throw Exception("Failed to load book.");
+  }
+}
+
+// class DatabaseConnector {
+//   DatabaseConnector({
+//     required this.uri,
+//   });
+//   final String uri;
+// }
+
+class Livre {
+  final String titre;
+  final int prix;
+  final String cover;
+
+  const Livre({
+    required this.titre,
+    required this.prix,
+    required this.cover,
+  });
+
+  factory Livre.fromJson(Map<String, dynamic> json) {
+    return switch (json) {
+      {
+        'titre': String titre,
+        'prix': int prix,
+        'cover': String cover,
+      } =>
+        Livre(
+          titre: titre,
+          prix: prix,
+          cover: cover,
+        ),
+      _ => throw const FormatException(
+          'Failed to load book. (lib/main.dart, class Livre/factory)')
+    };
+  }
 }
 
 class MutationApp extends StatelessWidget {
@@ -32,6 +83,12 @@ class MutationApp extends StatelessWidget {
 class MutationAppState extends ChangeNotifier {
   var username = "Hassan";
   var index = 0;
+  var extra = 0;
+  late Future<Livre> library;
+
+  MutationAppState() {
+    library = fetchAlbum();
+  }
 
   void testName() {
     username += "n";
@@ -40,6 +97,11 @@ class MutationAppState extends ChangeNotifier {
 
   changeIndex(newIndex) {
     index = newIndex;
+    notifyListeners();
+  }
+
+  changeExtra(newExtra) {
+    extra = newExtra;
     notifyListeners();
   }
 }
@@ -52,6 +114,7 @@ class HomePage extends StatelessWidget {
     var state = context.watch<MutationAppState>();
     var username = state.username;
     var pageIndex = state.index;
+    var extraIndex = state.extra;
     Widget currentPage;
     /**
      * Page Indexes:
@@ -65,17 +128,16 @@ class HomePage extends StatelessWidget {
    */
     switch (pageIndex) {
       case 0:
-        currentPage = FormationsPage();
+        currentPage =
+            [FormationsPage(), ProfilePage(), DetailsFormation()][extraIndex];
       case 1:
-        currentPage = BoutiquePage(); // BoutiquePage
+        currentPage = extraIndex == 0
+            ? BoutiquePage()
+            : DetailsFormation(); // BoutiquePage
       case 2:
-        currentPage = BibliothequePage(); // BibliothequePage
-      case 3:
-        currentPage = Placeholder(); // ProfilPage
-      case 4:
-        currentPage = Placeholder(); // DetailsFormation
-      case 5:
-        currentPage = Placeholder(); // DetailsLivrePage
+        currentPage = extraIndex == 0
+            ? BibliothequePage()
+            : DetailsLivre(); // BibliothequePage
       default:
         throw UnimplementedError("no widget for $pageIndex");
     }
@@ -117,7 +179,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
             onPressed: () {
-              state.changeIndex(3);
+              state.changeIndex(0);
+              state.changeExtra(1);
             },
             icon: Icon(Icons.person)),
         IconButton(
@@ -130,7 +193,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(60);
+  material.Size get preferredSize => const material.Size.fromHeight(60);
 }
 
 class BottomBar extends StatelessWidget {
@@ -160,6 +223,7 @@ class BottomBar extends StatelessWidget {
       currentIndex: (index < 3) ? index : 0,
       onTap: (i) {
         state.changeIndex(i);
+        state.changeExtra(0);
         print("Index is $i");
       },
     );
@@ -204,6 +268,25 @@ class BibliothequePage extends StatelessWidget {
 }
 
 class BoutiquePage extends StatelessWidget {
+  BoutiquePage() {
+    fetchAlbum();
+  }
+  @override
+  Widget build(BuildContext context) {
+    //todo
+    // var state = context.watch<MutationAppState>();
+    return Column(
+      children: [
+        SizedBox(
+          height: 30,
+        ),
+        // for (var livre in livres) LivreWidget(),
+      ],
+    );
+  }
+}
+
+class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -211,7 +294,126 @@ class BoutiquePage extends StatelessWidget {
         SizedBox(
           height: 30,
         ),
-        LivreWidget()
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () {
+                print("Switch to userInfo");
+              },
+              child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Theme.of(context).colorScheme.primary),
+                  width: 180,
+                  height: 90,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Icon(Icons.person), Text("Mes infos")],
+                  )),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            GestureDetector(
+              onTap: () {
+                print("Mes filleuls");
+              },
+              child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Theme.of(context).colorScheme.primary),
+                  width: 180,
+                  height: 90,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Icon(Icons.person), Text("Mes filleuls")],
+                  )),
+            )
+          ],
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () {
+                print("Mes produits");
+              },
+              child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Theme.of(context).colorScheme.primary),
+                  width: 180,
+                  height: 90,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Icon(Icons.person), Text("Mes produits")],
+                  )),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            GestureDetector(
+              onTap: () {
+                print("Déconnexion");
+              },
+              child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Theme.of(context).colorScheme.primary),
+                  width: 180,
+                  height: 90,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Icon(Icons.person), Text("Déconnexion")],
+                  )),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class DetailsFormation extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(context).colorScheme.primary),
+          child: SizedBox(width: 100, height: 100),
+        )
+      ],
+    );
+  }
+}
+
+class DetailsLivre extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(height: 30),
+        Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(context).colorScheme.primary),
+          child: SizedBox(width: 100, height: 100),
+        ),
+        SizedBox(height: 30),
+        Text(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."),
+        ElevatedButton(
+            onPressed: () {
+              print("buy book");
+            },
+            child: Text("Acheter"))
       ],
     );
   }
@@ -264,36 +466,43 @@ class FormationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: Theme.of(context).colorScheme.primary),
-        width: 370,
-        height: 100,
-        // color: Theme.of(context).colorScheme.primary,
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Image(
-                image: NetworkImage(imageLink, scale: 5),
+    var state = context.watch<MutationAppState>();
+    return GestureDetector(
+      onTap: () {
+        state.changeIndex(0);
+        state.changeExtra(2);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(context).colorScheme.primary),
+          width: 370,
+          height: 100,
+          // color: Theme.of(context).colorScheme.primary,
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image(
+                  image: NetworkImage(imageLink, scale: 5),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Text(title),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(price.toString()),
-                ],
-              ),
-            )
-          ],
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Text(title),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(price.toString()),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -360,34 +569,35 @@ class LivreWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           color: Theme.of(context).colorScheme.primary),
       width: 370,
-      height: 100,
+      height: 110,
       child: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Image(
-              image: NetworkImage(
-                  "https://i.pinimg.com/564x/9b/37/04/9b3704335e8ec736966f0846c08841c6.jpg",
-                  scale: 5),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(children: [
-              Text("Titre de livre"),
-              Text("Prix du livre"),
-              ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all<Color>(
-                        Theme.of(context).colorScheme.tertiary),
-                  ),
-                  onPressed: () {
-                    print("Plus d'infos");
-                  },
-                  child: Text("Plus d'infos"))
-            ]),
-          ),
-        ],
+        // children: [
+        //   Padding(
+        //     padding: const EdgeInsets.all(8.0),
+        //     child: Image(
+        //       image: NetworkImage(
+        //           "https://i.pinimg.com/564x/9b/37/04/9b3704335e8ec736966f0846c08841c6.jpg",
+        //           scale: 5),
+        //     ),
+        //   ),
+        //   Padding(
+        //     padding: const EdgeInsets.all(8.0),
+        //     child: Column(children: [
+        //       Text("Titre de livre"),
+        //       Text("Prix du livre"),
+        //       ElevatedButton(
+        //           style: ButtonStyle(
+        //             backgroundColor: WidgetStateProperty.all<Color>(
+        //                 Theme.of(context).colorScheme.tertiary),
+        //           ),
+        //           onPressed: () {
+        //             print("Plus d'infos");
+        //           },
+        //           child: Text("Plus d'infos"))
+        //     ]),
+        //   ),
+        // ],
+        children: [],
       ),
     );
   }
@@ -396,19 +606,20 @@ class LivreWidget extends StatelessWidget {
 class BibleWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    var state = context.watch<MutationAppState>();
     return Container(
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: Theme.of(context).colorScheme.primary),
       width: 370,
-      height: 100,
+      height: 110,
       child: Row(
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image(
               image: NetworkImage(
-                "https://i.pinimg.com/564x/9b/37/04/9b3704335e8ec736966f0846c08841c6.jpg", /*scale: 5*/
+                "https://mutation.ci/uploads/livres/11006.jpg", /*scale: 5*/
               ),
               width: 100,
               height: 120,
@@ -430,9 +641,13 @@ class BibleWidget extends StatelessWidget {
                               Theme.of(context).colorScheme.tertiary),
                         ),
                         onPressed: () {
-                          print("Lire");
+                          print("READ");
+                          // Todo
                         },
                         child: Text("Lire")),
+                  ),
+                  SizedBox(
+                    width: 15,
                   ),
                   ButtonTheme(
                       minWidth: 100,
@@ -443,7 +658,8 @@ class BibleWidget extends StatelessWidget {
                                 Theme.of(context).colorScheme.tertiary),
                           ),
                           onPressed: () {
-                            print("Plus d'infos");
+                            state.changeIndex(2);
+                            state.changeExtra(1);
                           },
                           child: Text("Plus d'infos"))),
                 ],
@@ -464,3 +680,7 @@ class AppColors {
 
   const AppColors();
 }
+
+// Nouh Henri-Joëlle Iman Sara
+// Monica
+// Ian & Habib
